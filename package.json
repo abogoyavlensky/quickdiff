@@ -1,0 +1,56 @@
+{
+  "name": "quickdiff",
+  "displayName": "QuickDiff",
+  "description": "A minimal, keyboard-first diff viewer for VS Code",
+  "publisher": "abogoyavlensky",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "SCM Providers",
+    "Other"
+  ],
+  "main": "./out/src/extension.js",
+  "activationEvents": [
+    "onUri",
+    "onStartupFinished"
+  ],
+  "extensionDependencies": [
+    "vscode.git"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "quickdiff",
+          "title": "QuickDiff",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "quickdiff": [
+        {
+          "id": "quickdiff.files",
+          "name": "Changes"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.19.43",
+    "@types/vscode": "1.95.0",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.0.0",
+    "mocha": "^11.7.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

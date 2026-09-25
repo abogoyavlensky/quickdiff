@@ -1,0 +1,19 @@
+{:tasks
+ {setup     {:doc "Install toolchain and npm dependencies"
+             :do [{:sh "mise install"} {:sh "npm install"}]}
+  compile   {:doc "Type-check and emit src and integration tests to out/"
+             :do {:sh "npx tsc -p ."}}
+  watch     {:doc "Recompile on change"
+             :do {:sh "npx tsc -p . -w"}}
+  test-unit {:doc "Unit tests for src/core and bin/qd (vitest)"
+             :do {:sh "npx vitest run"}}
+  test-it   {:doc "Integration tests inside a headless VS Code"
+             :depends [compile]
+             :do {:sh "xvfb-run -a npx vscode-test"}}
+  test      {:doc "All tests"
+             :depends [test-unit test-it]}
+  package   {:doc "Build the .vsix"
+             :depends [compile]
+             :do {:sh "npx vsce package"}}
+  clean     {:doc "Remove build output and the downloaded VS Code"
+             :do {:sh "rm -rf out .vscode-test *.vsix"}}}}

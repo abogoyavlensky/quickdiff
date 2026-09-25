@@ -1,0 +1,3 @@
+[tools]
+node = "24"
+"github:abogoyavlensky/rite" = "latest"

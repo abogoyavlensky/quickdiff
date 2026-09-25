@@ -1,0 +1,14 @@
+test/**
+out/test/**
+docs/**
+.tmp/**
+.vscode-test/**
+.vscode/**
+**/*.map
+**/*.ts
+tsconfig.json
+vitest.config.ts
+.vscode-test.mjs
+.mise.toml
+rite.edn
+.gitignore
