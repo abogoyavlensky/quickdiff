@@ -74,8 +74,15 @@ export class ChangesModel implements vscode.Disposable {
         }
         return { resolved: { left: mergeBase, right: 'HEAD' }, changes: await this.repo.diffBetween(mergeBase, 'HEAD') };
       }
-      case 'refs':
-        return { resolved: { left: mode.from, right: mode.to }, changes: await this.repo.diffBetween(mode.from, mode.to) };
+      case 'refs': {
+        // The git API only offers `git diff from...to`, so the left side is the merge base to
+        // keep the list, hunks, and diff sides consistent. Same as `from` when it is an ancestor.
+        const mergeBase = await this.repo.getMergeBase(mode.from, mode.to);
+        if (!mergeBase) {
+          throw new Error(`No merge base between ${mode.from} and ${mode.to}`);
+        }
+        return { resolved: { left: mergeBase, right: mode.to }, changes: await this.repo.diffBetween(mergeBase, mode.to) };
+      }
     }
   }
 
