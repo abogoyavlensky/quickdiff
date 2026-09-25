@@ -41,6 +41,13 @@ describe('changes model', () => {
     assert.deepStrictEqual(await model.hunksFor(model.files[0]), fixture.refs.hunks['a.txt']);
   });
 
+  it('finds hunks of a renamed file across both paths', async () => {
+    const model = await getModel();
+    await model.setMode({ kind: 'refs', from: fixture.rename.from, to: fixture.rename.to });
+    assert.deepStrictEqual(listing(model), fixture.rename.files);
+    assert.deepStrictEqual(await model.hunksFor(model.files[0]), fixture.rename.hunks['moved/a.txt']);
+  });
+
   it('rejects an unknown base and keeps the previous list', async () => {
     const model = await getModel();
     const before = listing(model);

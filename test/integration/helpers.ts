@@ -16,6 +16,7 @@ export interface FixtureSpec {
   worktree: ModeFixture;
   branch: ModeFixture & { base: string };
   refs: ModeFixture & { from: string; to: string };
+  rename: ModeFixture & { from: string; to: string };
 }
 
 /** Loads FIXTURE from test/fixture/makeRepo.mjs, the same module that builds the repository. */

@@ -28,6 +28,13 @@ export const FIXTURE = {
     files: [['a.txt', 'modified']],
     hunks: { 'a.txt': [1] },
   },
+  // Extra branch off master: a.txt moved to moved/a.txt with line 5 edited.
+  rename: {
+    from: 'master',
+    to: 'rename',
+    files: [['moved/a.txt', 'renamed']],
+    hunks: { 'moved/a.txt': [5] },
+  },
 };
 
 const lines = (prefix, count, overrides = {}) =>
@@ -76,6 +83,13 @@ export function createFixtureRepo(dir) {
   git('checkout', '-q', 'master');
   write('a.txt', lines('a', 10, { 1: 'a1-master' }));
   git('commit', '-q', '-am', 'master work');
+
+  // Rename branch off master (not an ancestor of feature, so other lists are unaffected).
+  git('checkout', '-q', '-b', 'rename');
+  mkdirSync(join(dir, 'moved'));
+  git('mv', 'a.txt', 'moved/a.txt');
+  write('moved/a.txt', lines('a', 10, { 1: 'a1-master', 5: 'a5-renamed' }));
+  git('commit', '-q', '-am', 'rename a.txt');
 
   // Working tree on feature.
   git('checkout', '-q', 'feature');

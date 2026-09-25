@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { API, GitExtension, Repository } from './gitTypes';
 
@@ -41,7 +42,7 @@ export function waitForRepository(api: API, folderUri: vscode.Uri, timeoutMs = 1
   });
 }
 
-function isInside(path: string, root: string): boolean {
-  const normalizedRoot = root.endsWith('/') ? root : root + '/';
-  return path === root || path.startsWith(normalizedRoot);
+function isInside(child: string, root: string): boolean {
+  const relative = path.relative(root, child);
+  return relative === '' || (relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative));
 }

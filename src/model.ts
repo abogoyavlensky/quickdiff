@@ -80,21 +80,38 @@ export class ChangesModel implements vscode.Disposable {
   }
 
   hunksFor(file: FileChange): Promise<number[]> {
-    if (file.status === 'untracked' || file.status === 'added' || file.status === 'deleted') {
+    const wholeFile =
+      file.status === 'untracked' ||
+      file.status === 'added' ||
+      file.status === 'deleted' ||
+      // The working tree side of a rename is not a blob, so there is nothing to diff it against.
+      (file.status === 'renamed' && this.mode.kind === 'worktree');
+    if (wholeFile) {
       return Promise.resolve([1]);
     }
     let hunks = this.hunkCache.get(file.path);
     if (!hunks) {
-      const { left, right } = this.resolved;
-      const diff =
-        right === 'worktree'
-          ? this.repo.diffWith('HEAD', file.uri.fsPath)
-          : this.repo.diffBetween(left, right, file.uri.fsPath);
-      hunks = diff.then(parseHunkLines);
+      hunks = this.diffText(file).then(parseHunkLines);
       hunks.catch(() => this.hunkCache.delete(file.path));
       this.hunkCache.set(file.path, hunks);
     }
     return hunks;
+  }
+
+  private async diffText(file: FileChange): Promise<string> {
+    if (this.mode.kind === 'worktree') {
+      return this.repo.diffWith('HEAD', file.uri.fsPath);
+    }
+    const { left, right } = this.resolved;
+    if (file.status === 'renamed') {
+      // A path-limited diff would see only the new path and report the whole file as added.
+      const [before, after] = await Promise.all([
+        this.repo.getObjectDetails(left, file.originalUri.fsPath),
+        this.repo.getObjectDetails(right, file.uri.fsPath),
+      ]);
+      return this.repo.diffBlobs(before.object, after.object);
+    }
+    return this.repo.diffBetween(left, right, file.uri.fsPath);
   }
 
   /** Base branch for branch mode: setting, else `main`, else `master`, else undefined (caller asks). */
