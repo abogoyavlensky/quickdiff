@@ -5,20 +5,24 @@
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ]
     },
     {
       "name": "Integration Tests",
       "type": "extensionHost",
       "request": "launch",
+      "testConfiguration": "${workspaceFolder}/.vscode-test.mjs",
       "args": [
-        "${workspaceFolder}/.vscode-test/fixture-repo",
-        "--disable-workspace-trust",
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/integration"
+        "--extensionDevelopmentPath=${workspaceFolder}"
       ],
-      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ]
     }
   ]
 }
