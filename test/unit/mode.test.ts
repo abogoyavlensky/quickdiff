@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatOpenQuery, modeLabel, parseOpenQuery, type OpenRequest } from '../../src/core/mode';
+import { formatOpenQuery, formatOpenUrl, modeLabel, parseOpenQuery, type OpenRequest } from '../../src/core/mode';
 
 describe('modeLabel', () => {
   it('labels each mode', () => {
@@ -42,5 +42,22 @@ describe('open query codec', () => {
     ['unknown view', 'cwd=%2Frepo&mode=worktree&view=grid'],
   ])('rejects %s', (_name, query) => {
     expect(parseOpenQuery(query)).toBeUndefined();
+  });
+});
+
+describe('formatOpenUrl', () => {
+  it('escapes percent signs once more so a single decoding yields the query', () => {
+    const request: OpenRequest = { cwd: '/tmp/a+b&c d', mode: { kind: 'branch', base: 'feature/a+b' }, view: 'all' };
+    const url = formatOpenUrl(request);
+    expect(url.startsWith('vscode://abogoyavlensky.quickdiff/open?')).toBe(true);
+    const deliveredQuery = decodeURIComponent(url.slice(url.indexOf('?') + 1));
+    expect(deliveredQuery).toBe(formatOpenQuery(request));
+    expect(parseOpenQuery(deliveredQuery)).toEqual(request);
+  });
+
+  it('uses the given scheme', () => {
+    expect(formatOpenUrl({ cwd: '/r', mode: { kind: 'worktree' }, view: 'file' }, 'vscode-insiders')).toMatch(
+      /^vscode-insiders:\/\/abogoyavlensky\.quickdiff\/open\?/,
+    );
   });
 });

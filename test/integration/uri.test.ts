@@ -1,10 +1,10 @@
 import * as assert from 'node:assert';
 import * as vscode from 'vscode';
-import { formatOpenQuery, type OpenRequest } from '../../src/core/mode';
+import { formatOpenUrl, parseOpenQuery, type OpenRequest } from '../../src/core/mode';
 import { activeDiffTab, closeAllEditors, getApi, getModel, resetToWorktree } from './helpers';
 
 function openUri(request: OpenRequest): vscode.Uri {
-  return vscode.Uri.parse('vscode://abogoyavlensky.quickdiff/open?' + formatOpenQuery(request));
+  return vscode.Uri.parse(formatOpenUrl(request));
 }
 
 describe('open requests via uri', () => {
@@ -33,6 +33,15 @@ describe('open requests via uri', () => {
     const api = await getApi();
     await api.handleUri(openUri({ cwd: cwd + '/src', mode: { kind: 'worktree' }, view: 'all' }));
     assert.ok(activeDiffTab()?.label.startsWith('QuickDiff: '), activeDiffTab()?.label);
+  });
+
+  it('delivers reserved characters in values intact through VS Code uri parsing', () => {
+    const request: OpenRequest = {
+      cwd: '/tmp/a+b&c=d e%f',
+      mode: { kind: 'refs', from: 'feature/a+b', to: 'v1.0#x' },
+      view: 'all',
+    };
+    assert.deepStrictEqual(parseOpenQuery(openUri(request).query), request);
   });
 
   it('ignores a malformed request', async () => {

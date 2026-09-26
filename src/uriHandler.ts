@@ -78,17 +78,25 @@ export async function applyRequest(deps: UriDeps, request: OpenRequest): Promise
   }
 }
 
-/** Applies a request stored before `vscode.openFolder` restarted the window; always clears it. */
+/**
+ * Applies a request stored before `vscode.openFolder` restarted the window. `globalState` is
+ * shared by all windows, so a fresh request meant for another repository is left for that window;
+ * the entry is cleared once applied here or once stale.
+ */
 export async function replayPending(deps: UriDeps): Promise<void> {
   const pending = deps.context.globalState.get<PendingOpen>(PENDING_KEY);
   if (!pending) {
     return;
   }
-  await deps.context.globalState.update(PENDING_KEY, undefined);
+  if (Date.now() - pending.at >= PENDING_MAX_AGE_MS) {
+    await deps.context.globalState.update(PENDING_KEY, undefined);
+    return;
+  }
   await deps.ready;
   const model = deps.model();
-  const fresh = Date.now() - pending.at < PENDING_MAX_AGE_MS;
-  if (model && fresh && planOpen(pending.request, [model.repositoryRoot]).action === 'apply') {
-    await applyRequest(deps, pending.request);
+  if (!model || planOpen(pending.request, [model.repositoryRoot]).action !== 'apply') {
+    return;
   }
+  await deps.context.globalState.update(PENDING_KEY, undefined);
+  await applyRequest(deps, pending.request);
 }

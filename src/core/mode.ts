@@ -32,6 +32,18 @@ export function formatOpenQuery(request: OpenRequest): string {
   return params.toString();
 }
 
+export const OPEN_URL_AUTHORITY = 'abogoyavlensky.quickdiff';
+
+/**
+ * Builds the `vscode://` URL for a request. VS Code percent-decodes the query once before the
+ * URI handler sees it, so `%` is escaped once more: after that decoding, `uri.query` is exactly
+ * `formatOpenQuery(request)`, and values with `+`, `&`, `=`, or `%` survive intact.
+ */
+export function formatOpenUrl(request: OpenRequest, scheme = 'vscode'): string {
+  return `${scheme}://${OPEN_URL_AUTHORITY}/open?${formatOpenQuery(request).replace(/%/g, '%25')}`;
+}
+
+/** Parses `uri.query` as delivered to the URI handler (already percent-decoded once by VS Code). */
 export function parseOpenQuery(query: string): OpenRequest | undefined {
   const params = new URLSearchParams(query);
   const cwd = params.get('cwd');
