@@ -37,6 +37,21 @@
           "name": "Changes"
         }
       ]
+    },
+    "commands": [
+      {
+        "command": "quickdiff.openFile",
+        "title": "Open Change",
+        "category": "QuickDiff"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "quickdiff.openFile",
+          "when": "false"
+        }
+      ]
     }
   },
   "scripts": {
