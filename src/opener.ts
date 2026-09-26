@@ -4,6 +4,9 @@ import { modeLabel } from './core/mode';
 import type { ChangesModel } from './model';
 import { sidesFor, type DiffSides } from './sides';
 
+/** Every QuickDiff multi-diff editor title starts with this; navigation recognises the tab by it. */
+export const MULTI_TITLE_PREFIX = 'QuickDiff: ';
+
 export interface OpenOptions {
   hunk?: 'first' | 'last' | 'none';
 }

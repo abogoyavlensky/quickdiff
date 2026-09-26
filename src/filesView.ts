@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import type { FileChange, FileStatus } from './core/files';
 import { modeLabel } from './core/mode';
 import type { ChangesModel } from './model';
-import { sidesOf } from './opener';
+import { currentIndex } from './navigation';
 
 const STATUS_ICONS: Record<FileStatus, string> = {
   added: 'diff-added',
@@ -71,7 +71,8 @@ export function createFilesView(context: vscode.ExtensionContext): FilesView {
       followActiveEditor();
     };
     const followActiveEditor = () => {
-      const file = activeFile(model);
+      const index = currentIndex(model);
+      const file = index === undefined ? undefined : model.files[index];
       if (file && treeView.visible && treeView.selection[0]?.path !== file.path) {
         treeView.reveal(file, { select: true, focus: false }).then(undefined, () => undefined);
       }
@@ -86,19 +87,4 @@ export function createFilesView(context: vscode.ExtensionContext): FilesView {
   };
 
   return { provider, treeView, attach };
-}
-
-// TODO(Task 8): replace with navigation.currentIndex.
-function activeFile(model: ChangesModel): FileChange | undefined {
-  const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
-  if (!(input instanceof vscode.TabInputTextDiff)) {
-    return undefined;
-  }
-  const modified = input.modified.toString();
-  const original = input.original.toString();
-  return model.files.find((file) => {
-    const { left, right } = sidesOf(model, file);
-    // Deleted files have an empty right side, so they are recognised by their original.
-    return file.status === 'deleted' ? left.toString() === original : right.toString() === modified;
-  });
 }
