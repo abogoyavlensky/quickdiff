@@ -25,6 +25,8 @@ export class ChangesModel implements vscode.Disposable {
   /** The latest requested mode; differs from `mode` while a setMode is in flight. */
   private target: DiffMode;
   private autoRefreshTimer: NodeJS.Timeout | undefined;
+  private explicitLoads = 0;
+  private autoRefreshDeferred = false;
   private readonly subscriptions: vscode.Disposable[] = [];
 
   constructor(
@@ -42,9 +44,7 @@ export class ChangesModel implements vscode.Disposable {
   async setMode(mode: DiffMode): Promise<void> {
     this.target = mode;
     try {
-      if (await this.load(mode, true)) {
-        await this.workspaceState.update(MODE_KEY, mode);
-      }
+      await this.explicitLoad(mode);
     } catch (error) {
       if (this.target === mode) {
         this.target = this.mode;
@@ -54,7 +54,24 @@ export class ChangesModel implements vscode.Disposable {
   }
 
   async refresh(): Promise<void> {
-    await this.load(this.target, true);
+    await this.explicitLoad(this.target);
+  }
+
+  /**
+   * A user-requested load. Auto-refreshes wait for it: `repo.status()` fires a state change, and
+   * an auto-refresh started meanwhile would supersede this load and drop the requested mode.
+   */
+  private async explicitLoad(mode: DiffMode): Promise<void> {
+    this.explicitLoads++;
+    try {
+      await this.load(mode, true);
+    } finally {
+      this.explicitLoads--;
+      if (this.explicitLoads === 0 && this.autoRefreshDeferred) {
+        this.autoRefreshDeferred = false;
+        this.scheduleAutoRefresh();
+      }
+    }
   }
 
   /**
@@ -64,6 +81,10 @@ export class ChangesModel implements vscode.Disposable {
   private scheduleAutoRefresh(): void {
     clearTimeout(this.autoRefreshTimer);
     this.autoRefreshTimer = setTimeout(() => {
+      if (this.explicitLoads > 0) {
+        this.autoRefreshDeferred = true;
+        return;
+      }
       const mode = this.target;
       if (mode.kind !== 'worktree') {
         return;
@@ -74,7 +95,7 @@ export class ChangesModel implements vscode.Disposable {
     }, AUTO_REFRESH_DELAY_MS);
   }
 
-  /** Loads the list for `mode`; commits it only if no newer load started meanwhile. */
+  /** Loads the list for `mode`; commits and persists it only if no newer load started meanwhile. */
   private async load(mode: DiffMode, updateStatus: boolean): Promise<boolean> {
     const sequence = ++this.sequence;
     const { resolved, changes } = await this.listChanges(mode, updateStatus);
@@ -86,6 +107,7 @@ export class ChangesModel implements vscode.Disposable {
     this.files = sortFiles(changes.map((change) => toFileChange(change, this.repositoryRoot)));
     this.hunkCache.clear();
     this.changeEmitter.fire();
+    await this.workspaceState.update(MODE_KEY, mode);
     return true;
   }
 
