@@ -4,6 +4,7 @@ import { modeLabel } from './core/mode';
 import { createFilesView } from './filesView';
 import { getGitApi, waitForRepository } from './git';
 import { ChangesModel } from './model';
+import { pickMode } from './modePicker';
 import { nextFile, nextHunk, prevFile, prevHunk } from './navigation';
 import { openAll, openFile, type OpenOptions } from './opener';
 import { registerEmptyProvider } from './sides';
@@ -58,6 +59,10 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
   register('quickdiff.nextHunk', withModel(nextHunk));
   register('quickdiff.prevHunk', withModel(prevHunk));
   register('quickdiff.openAll', withModel(openAll));
+  register(
+    'quickdiff.pickMode',
+    withModel((model) => pickMode(model).catch((error) => showGitError(model, error))),
+  );
 
   register('quickdiff.refresh', async () => {
     const model = await requireModel(api);
