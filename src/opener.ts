@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import type { FileChange } from './core/files';
 import { modeLabel } from './core/mode';
 import type { ChangesModel } from './model';
-import { sidesFor, type DiffSides } from './sides';
+import { multiDiffTuple, sidesFor, type DiffSides } from './sides';
 
 /** Every QuickDiff multi-diff editor title starts with this; navigation recognises the tab by it. */
 export const MULTI_TITLE_PREFIX = 'QuickDiff: ';
@@ -28,6 +28,16 @@ export async function openFile(model: ChangesModel, file: FileChange, opts: Open
   if (line !== undefined && editor?.document.uri.toString() === right.toString()) {
     moveCursor(editor, line);
   }
+}
+
+/** Opens every listed change in the multi-diff editor. */
+export async function openAll(model: ChangesModel): Promise<void> {
+  if (model.files.length === 0) {
+    vscode.window.setStatusBarMessage('QuickDiff: no changes', 2000);
+    return;
+  }
+  const resources = model.files.map((file) => multiDiffTuple(file, model.resolved, model.api));
+  await vscode.commands.executeCommand('vscode.changes', MULTI_TITLE_PREFIX + modeLabel(model.mode), resources);
 }
 
 /** Places the cursor at the start of a 1-based line and centers it. */

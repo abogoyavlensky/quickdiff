@@ -5,7 +5,7 @@ import { createFilesView } from './filesView';
 import { getGitApi, waitForRepository } from './git';
 import { ChangesModel } from './model';
 import { nextFile, nextHunk, prevFile, prevHunk } from './navigation';
-import { openFile, type OpenOptions } from './opener';
+import { openAll, openFile, type OpenOptions } from './opener';
 import { registerEmptyProvider } from './sides';
 
 export interface QuickDiffApi {
@@ -57,6 +57,7 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
   register('quickdiff.prevFile', withModel(prevFile));
   register('quickdiff.nextHunk', withModel(nextHunk));
   register('quickdiff.prevHunk', withModel(prevHunk));
+  register('quickdiff.openAll', withModel(openAll));
 
   register('quickdiff.refresh', async () => {
     const model = await requireModel(api);

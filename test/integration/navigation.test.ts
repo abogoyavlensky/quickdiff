@@ -89,8 +89,7 @@ describe('keyboard navigation', () => {
     assert.strictEqual(cursorLine(), 14);
   });
 
-  // Enabled in Task 9 once quickdiff.openAll exists.
-  it.skip('delegates to the multi-diff editor when it is active', async () => {
+  it('delegates to the multi-diff editor when it is active', async () => {
     const model = await getModel();
     await model.setMode({ kind: 'branch', base: 'master' });
     await run('quickdiff.openAll');
