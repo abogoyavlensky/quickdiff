@@ -40,8 +40,51 @@
     },
     "commands": [
       {
+        "command": "quickdiff.refresh",
+        "title": "Refresh",
+        "category": "QuickDiff",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "quickdiff.pickMode",
+        "title": "Pick Mode",
+        "category": "QuickDiff",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "quickdiff.openAll",
+        "title": "Open All Changes",
+        "category": "QuickDiff",
+        "icon": "$(list-flat)"
+      },
+      {
+        "command": "quickdiff.nextFile",
+        "title": "Next File",
+        "category": "QuickDiff"
+      },
+      {
+        "command": "quickdiff.prevFile",
+        "title": "Previous File",
+        "category": "QuickDiff"
+      },
+      {
+        "command": "quickdiff.nextHunk",
+        "title": "Next Change",
+        "category": "QuickDiff"
+      },
+      {
+        "command": "quickdiff.prevHunk",
+        "title": "Previous Change",
+        "category": "QuickDiff"
+      },
+      {
         "command": "quickdiff.openFile",
         "title": "Open Change",
+        "category": "QuickDiff"
+      },
+      {
+        "command": "quickdiff.installCli",
+        "title": "Install qd Command",
         "category": "QuickDiff"
       }
     ],
@@ -51,8 +94,79 @@
           "command": "quickdiff.openFile",
           "when": "false"
         }
+      ],
+      "view/title": [
+        {
+          "command": "quickdiff.refresh",
+          "when": "view == quickdiff.files",
+          "group": "navigation@0"
+        },
+        {
+          "command": "quickdiff.pickMode",
+          "when": "view == quickdiff.files",
+          "group": "navigation@1"
+        },
+        {
+          "command": "quickdiff.openAll",
+          "when": "view == quickdiff.files",
+          "group": "navigation@2"
+        }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "quickdiff.nextFile",
+        "key": "ctrl+alt+j",
+        "mac": "cmd+alt+j"
+      },
+      {
+        "command": "quickdiff.prevFile",
+        "key": "ctrl+alt+k",
+        "mac": "cmd+alt+k"
+      },
+      {
+        "command": "quickdiff.nextHunk",
+        "key": "ctrl+alt+n",
+        "mac": "cmd+alt+n"
+      },
+      {
+        "command": "quickdiff.prevHunk",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p"
+      },
+      {
+        "command": "quickdiff.files.focus",
+        "key": "ctrl+alt+d",
+        "mac": "cmd+alt+d"
+      },
+      {
+        "command": "quickdiff.openAll",
+        "key": "ctrl+alt+a",
+        "mac": "cmd+alt+a"
+      },
+      {
+        "command": "quickdiff.pickMode",
+        "key": "ctrl+alt+m",
+        "mac": "cmd+alt+m"
+      }
+    ],
+    "configuration": {
+      "title": "QuickDiff",
+      "properties": {
+        "quickdiff.baseBranch": {
+          "type": "string",
+          "default": "",
+          "description": "Base branch for branch mode. When empty, QuickDiff uses `main` if it exists, otherwise `master`, otherwise asks."
+        }
+      }
+    },
+    "viewsWelcome": [
+      {
+        "view": "quickdiff.files",
+        "contents": "Open a folder inside a git repository to see changes.",
+        "when": "quickdiff.noRepository"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "tsc -p ."

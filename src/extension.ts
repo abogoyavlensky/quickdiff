@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import type { FileChange } from './core/files';
+import { modeLabel } from './core/mode';
+import { createFilesView } from './filesView';
 import { getGitApi, waitForRepository } from './git';
 import { ChangesModel } from './model';
 import { openFile, type OpenOptions } from './opener';
@@ -10,9 +12,9 @@ export interface QuickDiffApi {
   ready: Promise<void>;
   /** Undefined when no repository was found. */
   model: ChangesModel | undefined;
-  // TODO(Tasks 7, 11): make required once the view and URI handler exist.
-  filesProvider?: vscode.TreeDataProvider<unknown>;
-  treeView?: vscode.TreeView<unknown>;
+  filesProvider: vscode.TreeDataProvider<FileChange>;
+  treeView: vscode.TreeView<FileChange>;
+  // TODO(Task 11): make required once the URI handler exists.
   handleUri?(uri: vscode.Uri): Promise<void>;
 }
 
@@ -22,9 +24,15 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
   const output = vscode.window.createOutputChannel('QuickDiff');
   context.subscriptions.push(output);
 
-  const api: QuickDiffApi = { ready: Promise.resolve(), model: undefined };
-
   registerEmptyProvider(context);
+  const filesView = createFilesView(context);
+
+  const api: QuickDiffApi = {
+    ready: Promise.resolve(),
+    model: undefined,
+    filesProvider: filesView.provider,
+    treeView: filesView.treeView,
+  };
 
   const register = (id: string, handler: (...args: any[]) => Promise<unknown> | unknown) =>
     context.subscriptions.push(vscode.commands.registerCommand(id, guarded(output, handler)));
@@ -35,6 +43,13 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
     const file = model?.files.find((f) => f.path === path);
     if (model && file) {
       await openFile(model, file, opts);
+    }
+  });
+
+  register('quickdiff.refresh', async () => {
+    const model = await requireModel(api);
+    if (model) {
+      await model.refresh().catch((error) => showGitError(model, error));
     }
   });
 
@@ -49,6 +64,7 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
       const model = new ChangesModel(gitApi, repo, context.workspaceState);
       context.subscriptions.push(model);
       api.model = model;
+      filesView.attach(model);
       await initialRefresh(model, output);
     } catch (error) {
       output.appendLine(`Repository discovery failed: ${errorMessage(error)}`);
@@ -101,6 +117,11 @@ export async function requireModel(api: QuickDiffApi): Promise<ChangesModel | un
     void vscode.window.showErrorMessage(NO_REPOSITORY_MESSAGE);
   }
   return api.model;
+}
+
+/** Shows a git failure with the mode it happened in; the model keeps its last good list. */
+export function showGitError(model: ChangesModel, error: unknown): void {
+  void vscode.window.showErrorMessage(`QuickDiff (${modeLabel(model.mode)}): ${errorMessage(error)}`);
 }
 
 export function errorMessage(error: unknown): string {
