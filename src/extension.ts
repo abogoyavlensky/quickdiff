@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
     context.subscriptions.push(vscode.commands.registerCommand(id, guarded(output, handler)));
 
   register('quickdiff.openFile', async (arg: FileChange | string | undefined, opts?: OpenOptions) => {
-    const model = requireModel(api);
+    const model = await requireModel(api);
     const path = typeof arg === 'string' ? arg : arg?.path;
     const file = model?.files.find((f) => f.path === path);
     if (model && file) {
@@ -91,8 +91,12 @@ function guarded(
   };
 }
 
-/** Returns the model, or shows the no-repository message and returns undefined. */
-export function requireModel(api: QuickDiffApi): ChangesModel | undefined {
+/**
+ * Waits for repository discovery, then returns the model, or shows the no-repository
+ * message and returns undefined.
+ */
+export async function requireModel(api: QuickDiffApi): Promise<ChangesModel | undefined> {
+  await api.ready;
   if (!api.model) {
     void vscode.window.showErrorMessage(NO_REPOSITORY_MESSAGE);
   }
