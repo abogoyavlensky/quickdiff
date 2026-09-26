@@ -20,9 +20,12 @@ export interface UriDeps {
   showGitError(model: ChangesModel, error: unknown): void;
 }
 
-/** Folders a request may apply to: the bound repository, else the open workspace folders. */
+/**
+ * Folders a request may apply to: only the bound repository. Without a model there is nothing to
+ * apply to (e.g. the window is a non-repository parent folder), so the target folder is opened.
+ */
 function candidateFolders(model: ChangesModel | undefined): string[] {
-  return model ? [model.repositoryRoot] : (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
+  return model ? [model.repositoryRoot] : [];
 }
 
 export function registerUriHandler(deps: UriDeps): (uri: vscode.Uri) => Promise<void> {
