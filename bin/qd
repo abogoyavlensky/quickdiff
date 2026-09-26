@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# qd: open the current git repository's changes in VS Code with QuickDiff.
+set -euo pipefail
+
+usage() {
+  cat <<'USAGE'
+usage: qd [options] [<base> | <from> <to>]
+
+  qd                 working tree changes against HEAD
+  qd <base>          committed branch changes since the merge base with <base>
+  qd <from> <to>     changes between two refs
+
+options:
+  -a, --all          open all changes in one multi-diff editor
+      --print-url    print the vscode:// URL instead of opening it
+  -h, --help         show this help
+
+environment:
+  QD_CODE_BIN        VS Code binary to run (default: code; e.g. code-insiders)
+USAGE
+}
+
+# Percent-encodes every byte outside [A-Za-z0-9._~-].
+urlencode() {
+  local LC_ALL=C s=$1 out='' c i
+  for ((i = 0; i < ${#s}; i++)); do
+    c=${s:i:1}
+    case $c in
+      [A-Za-z0-9._~-]) out+=$c ;;
+      *) printf -v c '%%%02X' "'$c"; out+=$c ;;
+    esac
+  done
+  printf '%s' "$out"
+}
+
+# VS Code percent-decodes the query once before the extension parses it, so each value is
+# encoded and then its `%` escaped again (see formatOpenUrl in src/core/mode.ts).
+param() {
+  local encoded
+  encoded=$(urlencode "$2")
+  printf '%s=%s' "$1" "${encoded//%/%25}"
+}
+
+view=file
+print_url=0
+refs=()
+while (($#)); do
+  case $1 in
+    -a | --all) view=all ;;
+    --print-url) print_url=1 ;;
+    -h | --help) usage; exit 0 ;;
+    --) shift; refs+=("$@"); break ;;
+    -*) echo "qd: unknown option: $1" >&2; usage >&2; exit 2 ;;
+    *) refs+=("$1") ;;
+  esac
+  shift
+done
+
+if ((${#refs[@]} > 2)); then
+  usage >&2
+  exit 2
+fi
+
+if ! cwd=$(git rev-parse --show-toplevel 2>/dev/null); then
+  echo "qd: not inside a git repository" >&2
+  exit 1
+fi
+
+query=$(param cwd "$cwd")
+case ${#refs[@]} in
+  0) query+="&mode=worktree" ;;
+  1) query+="&mode=branch&$(param base "${refs[0]}")" ;;
+  2) query+="&mode=refs&$(param from "${refs[0]}")&$(param to "${refs[1]}")" ;;
+esac
+query+="&view=$view"
+
+code_bin=${QD_CODE_BIN:-code}
+scheme=vscode
+if [[ $code_bin == *insiders* ]]; then
+  scheme=vscode-insiders
+fi
+url="$scheme://abogoyavlensky.quickdiff/open?$query"
+
+if ((print_url)); then
+  printf '%s\n' "$url"
+else
+  exec "$code_bin" --open-url "$url"
+fi

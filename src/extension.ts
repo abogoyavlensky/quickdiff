@@ -3,6 +3,7 @@ import type { FileChange } from './core/files';
 import { modeLabel } from './core/mode';
 import { createFilesView } from './filesView';
 import { getGitApi, waitForRepository } from './git';
+import { installCli } from './installCli';
 import { ChangesModel } from './model';
 import { pickMode } from './modePicker';
 import { nextFile, nextHunk, prevFile, prevHunk } from './navigation';
@@ -74,6 +75,8 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
     'quickdiff.pickMode',
     withModel((model) => pickMode(model).catch((error) => showGitError(model, error))),
   );
+
+  register('quickdiff.installCli', () => installCli(context));
 
   register('quickdiff.refresh', async () => {
     const model = await requireModel(api);
