@@ -12,3 +12,4 @@ vitest.config.ts
 .mise.toml
 rite.edn
 .gitignore
+package-lock.json
