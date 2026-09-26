@@ -16,7 +16,7 @@ QuickDiff requires VS Code 1.95 or newer and uses the built-in Git extension.
 
 ## Sidebar and modes
 
-The QuickDiff icon in the activity bar opens the **Changes** list: one row per file, sorted by path, with a status icon and Git colors. The view title shows the current mode and the badge shows the number of files. Click a file to open its diff at the first change.
+The QuickDiff icon in the activity bar opens the **Changes** list: one row per file, sorted by path, with a status icon and Git colors. The line above the list shows the current mode and the badge shows the number of files. Click a file to open its diff at the first change.
 
 There are three modes. Switch with **QuickDiff: Pick Mode** (`Ctrl+Alt+M`) or the view title button:
 
@@ -59,6 +59,8 @@ qd --print-url     # print the vscode:// URL instead of opening it
 ```
 
 If the current VS Code window has a different folder open, the window switches to the repository and then shows the changes.
+
+The first time, VS Code asks whether QuickDiff may open the URI. Tick "Do not ask me again for this extension" to skip it from then on.
 
 Install it with the command **QuickDiff: Install qd Command**, which copies the script to `~/.local/bin/qd`. Make sure `~/.local/bin` is on your `PATH`. For VS Code Insiders, set `QD_CODE_BIN=code-insiders`. The script needs bash and is not available on Windows.
 

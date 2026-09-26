@@ -33,7 +33,7 @@ describe('changes view', () => {
   it('shows the count and mode on the view', async () => {
     const { treeView } = await getApi();
     assert.strictEqual(treeView.badge?.value, 3);
-    assert.strictEqual(treeView.description, 'working tree');
+    assert.strictEqual(treeView.message, 'working tree');
   });
 
   it('selects the file of the active diff', async () => {
@@ -44,11 +44,11 @@ describe('changes view', () => {
     await waitFor(() => treeView.selection[0]?.path === 'src/b.ts');
   });
 
-  it('updates description and badge when the mode changes', async () => {
+  it('updates the mode message and badge when the mode changes', async () => {
     const { treeView } = await getApi();
     const model = await getModel();
     await model.setMode({ kind: 'branch', base: 'master' });
-    assert.strictEqual(treeView.description, 'HEAD → master');
+    assert.strictEqual(treeView.message, 'HEAD → master');
     assert.strictEqual(treeView.badge?.value, 3);
   });
 
@@ -56,7 +56,7 @@ describe('changes view', () => {
     const { treeView } = await getApi();
     const model = await getModel();
     await model.setMode({ kind: 'refs', from: 'master', to: 'master' });
-    assert.strictEqual(treeView.message, 'No changes');
+    assert.strictEqual(treeView.message, 'No changes (master..master)');
     assert.strictEqual(treeView.badge, undefined);
   });
 });

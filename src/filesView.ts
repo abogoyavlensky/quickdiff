@@ -65,9 +65,11 @@ export function createFilesView(context: vscode.ExtensionContext): FilesView {
     const update = () => {
       const count = model.files.length;
       provider.refresh();
-      treeView.description = modeLabel(model.mode);
+      const label = modeLabel(model.mode);
       treeView.badge = count ? { value: count, tooltip: `${count} changed files` } : undefined;
-      treeView.message = count ? undefined : 'No changes';
+      // The mode goes in the message: a single-view container merges the header into
+      // "QuickDiff: Changes" without rendering `description`, and titles get truncated and re-cased.
+      treeView.message = count ? label : `No changes (${label})`;
       followActiveEditor();
     };
     const followActiveEditor = () => {
