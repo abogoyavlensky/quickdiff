@@ -1,5 +1,5 @@
-import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { isInside } from './core/openPlan';
 import type { API, GitExtension, Repository } from './gitTypes';
 
 export async function getGitApi(): Promise<API> {
@@ -40,9 +40,4 @@ export function waitForRepository(api: API, folderUri: vscode.Uri, timeoutMs = 1
       }
     });
   });
-}
-
-function isInside(child: string, root: string): boolean {
-  const relative = path.relative(root, child);
-  return relative === '' || (relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative));
 }

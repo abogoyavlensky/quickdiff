@@ -8,6 +8,7 @@ import { pickMode } from './modePicker';
 import { nextFile, nextHunk, prevFile, prevHunk } from './navigation';
 import { openAll, openFile, type OpenOptions } from './opener';
 import { registerEmptyProvider } from './sides';
+import { registerUriHandler, replayPending, type UriDeps } from './uriHandler';
 
 export interface QuickDiffApi {
   /** Repository discovery finished (found or not) and the first refresh is done. */
@@ -16,8 +17,7 @@ export interface QuickDiffApi {
   model: ChangesModel | undefined;
   filesProvider: vscode.TreeDataProvider<FileChange>;
   treeView: vscode.TreeView<FileChange>;
-  // TODO(Task 11): make required once the URI handler exists.
-  handleUri?(uri: vscode.Uri): Promise<void>;
+  handleUri(uri: vscode.Uri): Promise<void>;
 }
 
 export const NO_REPOSITORY_MESSAGE = 'QuickDiff: no git repository in this window';
@@ -34,7 +34,18 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
     model: undefined,
     filesProvider: filesView.provider,
     treeView: filesView.treeView,
+    handleUri: async () => undefined,
   };
+
+  const uriDeps: UriDeps = {
+    context,
+    get ready() {
+      return api.ready;
+    },
+    model: () => api.model,
+    showGitError,
+  };
+  api.handleUri = registerUriHandler(uriDeps);
 
   const register = (id: string, handler: (...args: any[]) => Promise<unknown> | unknown) =>
     context.subscriptions.push(vscode.commands.registerCommand(id, guarded(output, handler)));
@@ -89,6 +100,8 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
       await vscode.commands.executeCommand('setContext', 'quickdiff.noRepository', true);
     }
   })();
+
+  replayPending(uriDeps).catch((error) => output.appendLine(`Pending open failed: ${errorMessage(error)}`));
 
   return api;
 }
