@@ -93,7 +93,7 @@ export function activate(context: vscode.ExtensionContext): QuickDiffApi {
       }
       const gitApi = await getGitApi();
       const repo = await waitForRepository(gitApi, folder.uri);
-      const model = new ChangesModel(gitApi, repo, context.workspaceState);
+      const model = new ChangesModel(gitApi, repo, context.workspaceState, (message) => output.appendLine(message));
       context.subscriptions.push(model);
       api.model = model;
       filesView.attach(model);
