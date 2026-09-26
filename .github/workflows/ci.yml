@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # Installs node and rite pinned in .mise.toml, matching local dev.
+      - uses: jdx/mise-action@v3.6.1
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Unit tests, then integration tests in a headless VS Code (xvfb-run).
+      - name: Test
+        run: rite test
+
+      - name: Package extension
+        run: rite package
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: quickdiff-vsix
+          path: "*.vsix"
+          if-no-files-found: error

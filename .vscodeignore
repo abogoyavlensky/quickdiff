@@ -13,3 +13,5 @@ vitest.config.ts
 rite.edn
 .gitignore
 package-lock.json
+.github/**
+AGENTS.md

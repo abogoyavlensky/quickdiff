@@ -90,6 +90,10 @@ sudo apt install xvfb libgtk-3-0 libnss3 libasound2 libatk-bridge2.0-0 libdrm2 l
 
 To run the extension from source, start `rite watch` in a terminal and press F5 in VS Code ("Run Extension").
 
+### Releasing
+
+CI (`.github/workflows/ci.yml`) runs the tests and uploads the `.vsix` as a build artifact on every push and pull request. To publish a release, bump `version` in `package.json`, add a `CHANGELOG.md` entry, commit, and push a matching tag (`0.2.0` or `v0.2.0`). The release workflow tests, packages one universal `.vsix`, and attaches it with checksums to a GitHub Release.
+
 ## License
 
 MIT
