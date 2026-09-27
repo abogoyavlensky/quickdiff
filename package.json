@@ -3,7 +3,7 @@
   "displayName": "QuickDiff",
   "description": "A minimal, keyboard-first diff viewer for VS Code",
   "publisher": "abogoyavlensky",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -132,43 +132,6 @@
         }
       ]
     },
-    "keybindings": [
-      {
-        "command": "quickdiff.nextFile",
-        "key": "ctrl+alt+j",
-        "mac": "cmd+alt+j"
-      },
-      {
-        "command": "quickdiff.prevFile",
-        "key": "ctrl+alt+k",
-        "mac": "cmd+alt+k"
-      },
-      {
-        "command": "quickdiff.nextHunk",
-        "key": "ctrl+alt+n",
-        "mac": "cmd+alt+n"
-      },
-      {
-        "command": "quickdiff.prevHunk",
-        "key": "ctrl+alt+p",
-        "mac": "cmd+alt+p"
-      },
-      {
-        "command": "quickdiff.files.focus",
-        "key": "ctrl+alt+d",
-        "mac": "cmd+alt+d"
-      },
-      {
-        "command": "quickdiff.openAll",
-        "key": "ctrl+alt+a",
-        "mac": "cmd+alt+a"
-      },
-      {
-        "command": "quickdiff.pickMode",
-        "key": "ctrl+alt+m",
-        "mac": "cmd+alt+m"
-      }
-    ],
     "configuration": {
       "title": "QuickDiff",
       "properties": {

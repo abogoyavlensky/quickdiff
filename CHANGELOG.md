@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- No default keybindings. Bind the commands yourself; see `docs/keybindings.md` for examples.
+
 ## 0.1.0
 
 Initial release.

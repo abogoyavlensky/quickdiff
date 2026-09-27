@@ -8,11 +8,13 @@ Open a repository and see what changed. Move between files and changes from the 
 
 ## Install
 
-Download `quickdiff-<version>.vsix` from the [releases](https://github.com/abogoyavlensky/quickdiff/releases) and install it:
+Install **QuickDiff** from the Extensions view (search for "QuickDiff"), or from the command line:
 
 ```sh
-code --install-extension quickdiff-0.1.0.vsix
+code --install-extension abogoyavlensky.quickdiff
 ```
+
+Each version is also attached as a `.vsix` to the [GitHub releases](https://github.com/abogoyavlensky/quickdiff/releases). Install it with `code --install-extension quickdiff-<version>.vsix`.
 
 QuickDiff requires VS Code 1.95 or newer and uses the built-in Git extension.
 
@@ -20,7 +22,7 @@ QuickDiff requires VS Code 1.95 or newer and uses the built-in Git extension.
 
 The QuickDiff icon in the activity bar opens the **Changes** list: one row per file, sorted by path, with a status icon and Git colors. The line above the list shows the current mode and the badge shows the number of files. Click a file to open its diff at the first change.
 
-There are three modes. Switch with **QuickDiff: Pick Mode** (`Ctrl+Alt+M`) or the view title button:
+There are three modes. Switch with **QuickDiff: Pick Mode** or the view title button:
 
 | Mode | Compares | Use it for |
 |------|----------|------------|
@@ -32,21 +34,13 @@ Branch mode shows committed changes only. Two-refs mode compares the merge base 
 
 The working tree list refreshes on its own when files change. The other modes refresh with the refresh button. The mode is remembered per workspace.
 
-**QuickDiff: Open All Changes** (`Ctrl+Alt+A`) opens every change in one scrollable multi-diff editor.
+**QuickDiff: Open All Changes** opens every change in one scrollable multi-diff editor.
 
 ## Keybindings
 
-| Command | Linux/Windows | macOS |
-|---------|---------------|-------|
-| Next file | `Ctrl+Alt+J` | `Cmd+Alt+J` |
-| Previous file | `Ctrl+Alt+K` | `Cmd+Alt+K` |
-| Next change | `Ctrl+Alt+N` | `Cmd+Alt+N` |
-| Previous change | `Ctrl+Alt+P` | `Cmd+Alt+P` |
-| Focus the changes list | `Ctrl+Alt+D` | `Cmd+Alt+D` |
-| Open all changes | `Ctrl+Alt+A` | `Cmd+Alt+A` |
-| Pick mode | `Ctrl+Alt+M` | `Cmd+Alt+M` |
+QuickDiff ships without keybindings, so it never overrides shortcuts you already use. The commands are designed for the keyboard, so bind the ones you want. [docs/keybindings.md](docs/keybindings.md) lists the command IDs and has ready-to-paste examples for Linux, Windows, and macOS.
 
-Next and previous change continue into the next or previous file at the ends, and file navigation wraps around. In the multi-diff editor, the same keys move between changes across all files.
+The navigation commands are **Next File**, **Previous File**, **Next Change**, and **Previous Change**. Next and previous change continue into the next or previous file at the ends, and file navigation wraps around. In the multi-diff editor, they move between changes across all files.
 
 ## Terminal: `qd`
 
