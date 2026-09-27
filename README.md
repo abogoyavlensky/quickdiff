@@ -1,3 +1,5 @@
+<p align="center"><img src="media/icon.png" alt="QuickDiff icon" width="128"></p>
+
 # QuickDiff
 
 A minimal, keyboard-first diff viewer for VS Code.

@@ -26,6 +26,11 @@
     "SCM Providers",
     "Other"
   ],
+  "icon": "media/icon.png",
+  "galleryBanner": {
+    "color": "#222F4A",
+    "theme": "dark"
+  },
   "main": "./out/src/extension.js",
   "activationEvents": [
     "onUri",
