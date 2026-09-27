@@ -6,6 +6,8 @@ A minimal, keyboard-first diff viewer for VS Code.
 
 Open a repository and see what changed. Move between files and changes from the keyboard. QuickDiff lists changed files in its own sidebar and opens them in VS Code's native diff editor. There is no staging, no comments, and no review workflow.
 
+![QuickDiff: the Changes list next to a file's diff](docs/images/changes.png)
+
 ## Install
 
 Install **QuickDiff** from the Extensions view (search for "QuickDiff"), or from the command line:
@@ -35,6 +37,8 @@ Branch mode shows committed changes only. Two-refs mode compares the merge base 
 The working tree list refreshes on its own when files change. The other modes refresh with the refresh button. The mode is remembered per workspace.
 
 **QuickDiff: Open All Changes** opens every change in one scrollable multi-diff editor.
+
+![QuickDiff: all changes in one multi-diff editor](docs/images/all-changes.png)
 
 ## Keybindings
 
