@@ -18,6 +18,7 @@ export async function pickMode(model: ChangesModel): Promise<void> {
       { label: mark('worktree', 'Working tree'), mode: 'worktree' as const, detail: 'Uncommitted changes against HEAD' },
       { label: mark('branch', 'Branch against base…'), mode: 'branch' as const, detail: 'Committed changes since the merge base' },
       { label: mark('refs', 'Two refs…'), mode: 'refs' as const, detail: 'Changes between two branches, tags, or commits' },
+      { label: mark('commit', 'Single commit…'), mode: 'commit' as const, detail: 'Changes introduced by one commit' },
     ],
     { title: 'QuickDiff: Pick Mode' },
   );
@@ -47,6 +48,12 @@ async function pickModeParams(model: ChangesModel, kind: DiffMode['kind']): Prom
       }
       const to = await pickRef(`Compare ${from} to`, items, model.mode.kind === 'refs' ? model.mode.to : undefined);
       return to ? { kind: 'refs', from, to } : undefined;
+    }
+    case 'commit': {
+      // Branches are omitted: a branch name is its tip commit, and "Type a ref…" covers it.
+      const active = model.mode.kind === 'commit' ? model.mode.ref : undefined;
+      const ref = await pickRef('Commit', await commitItems(model), active);
+      return ref ? { kind: 'commit', ref } : undefined;
     }
   }
 }
