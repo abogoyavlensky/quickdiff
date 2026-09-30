@@ -1,5 +1,7 @@
 # Single Commit Mode Implementation Plan
 
+**Status:** Completed 2026-09-30. See the Completion summary at the end.
+
 > **For agentic workers:** Use executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A fourth diff mode that shows the changes introduced by one commit, reachable from the mode picker, the `vscode://` URL, and `qd -c`.
@@ -106,24 +108,24 @@ No new files.
 - Modify: `src/core/mode.ts`
 - Test: `test/unit/mode.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
   In `test/unit/mode.test.ts`:
   - In `modeLabel`: `{ kind: 'commit', ref: 'a'.repeat(40) }` → `'commit aaaaaaa'`; `{ kind: 'commit', ref: 'HEAD' }` → `'commit HEAD'`.
   - In the round-trip `requests` array: `{ cwd: '/repo', mode: { kind: 'commit', ref: 'v1.0#x' }, view: 'file' }`.
   - In the `rejects` table: `['commit without ref', 'cwd=%2Frepo&mode=commit']`.
 
-- [ ] **Step 2: Run the unit tests to see them fail**
+- [x] **Step 2: Run the unit tests to see them fail**
   Run: `npx vitest run test/unit/mode.test.ts`
   Expected: type errors or failing assertions for the three new cases.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
   In `src/core/mode.ts`: add `| { kind: 'commit'; ref: string }` to `DiffMode`; add the `case 'commit'` to `modeLabel` (shorten only when the ref matches `/^[0-9a-f]{40}$/`); set `ref` in `formatOpenQuery`; parse `mode=commit` in `parseMode`, returning undefined without `ref`.
 
-- [ ] **Step 4: Run the unit tests**
+- [x] **Step 4: Run the unit tests**
   Run: `npx vitest run test/unit/mode.test.ts`
   Expected: PASS. `npx tsc -p . --noEmit` now reports non-exhaustive switches in `src/model.ts` and `src/modePicker.ts`; the next two tasks fix them.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat(core): commit mode type, label, and query codec"`
 
 ### Task 2: Listing a commit in the model
@@ -133,7 +135,7 @@ No new files.
 - Modify: `test/fixture/makeRepo.mjs`, `test/integration/helpers.ts`
 - Test: `test/integration/listing.test.ts`
 
-- [ ] **Step 1: Add the fixture expectations and the merge commit**
+- [x] **Step 1: Add the fixture expectations and the merge commit**
   In `test/fixture/makeRepo.mjs`, add to `FIXTURE`:
   ```js
   // Tip of master ("master work") against its parent; master~1 is the root commit.
@@ -156,21 +158,21 @@ No new files.
   In `createFixtureRepo`, after the rename commit and before "Working tree on feature", add a leaf branch: `git checkout -q -b merged` (from `rename`), then `git merge -q --no-ff -m 'merge feature' feature`. The merge is clean. Keep the final `git checkout -q feature` so the working tree fixture is unchanged.
   In `test/integration/helpers.ts`, add `commit: ModeFixture & { ref: string }` and `mergeCommit: ModeFixture & { ref: string }` to `FixtureSpec`.
 
-- [ ] **Step 2: Write the failing integration tests**
+- [x] **Step 2: Write the failing integration tests**
   In `test/integration/listing.test.ts`:
   - `lists the changes of a single commit against its parent`: `setMode({ kind: 'commit', ref: fixture.commit.ref })`; `listing(model)` equals `fixture.commit.files`; `resolved.left` and `resolved.right` both match `/^[0-9a-f]{40}$/`; `resolved.right !== 'master'`; hunks of `model.files[0]` equal `fixture.commit.hunks['a.txt']`.
   - `diffs a merge commit against its first parent`: `setMode({ kind: 'commit', ref: fixture.mergeCommit.ref })`; `listing(model)` equals `fixture.mergeCommit.files`; hunks of every file equal `fixture.mergeCommit.hunks[file.path]`.
   - `rejects a root commit and keeps the previous list`: capture `listing` and `mode`, `assert.rejects(model.setMode({ kind: 'commit', ref: 'master~1' }), /root commit/)`, then assert both unchanged.
   Run `rite test-it` once before implementing to confirm the existing suites still pass with the new `merged` branch in the fixture.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
   In `src/model.ts` `listChanges`, add `case 'commit'` following the design: `getCommit`, first parent or throw, `diffBetween(parent, commit.hash)`, `resolved: { left: parent, right: commit.hash }`.
 
-- [ ] **Step 4: Compile and run the integration tests**
+- [x] **Step 4: Compile and run the integration tests**
   Run: `rite test-it`
   Expected: `tsc` still fails on `src/modePicker.ts` (non-exhaustive switch) until Task 3. If so, do Task 3 Steps 1 and 2 first, then return here. All listing tests PASS, including the three new ones.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat: list a single commit against its first parent"`
 
 ### Task 3: Picker entry
@@ -180,20 +182,22 @@ No new files.
 
 No automated test: the picker is interactive and the existing picker has none either.
 
-- [ ] **Step 1: Add the picker entry**
+- [x] **Step 1: Add the picker entry**
   In `pickMode`, add `{ label: mark('commit', 'Single commit…'), mode: 'commit' as const, detail: 'Changes introduced by one commit' }` after the two-refs entry.
 
-- [ ] **Step 2: Add the params case**
+- [x] **Step 2: Add the params case**
   In `pickModeParams`, `case 'commit'`: `active` is `model.mode.ref` when `model.mode.kind === 'commit'`; `const ref = await pickRef('Commit', await commitItems(model), active)`; return `{ kind: 'commit', ref }` or undefined.
 
-- [ ] **Step 3: Type-check and run everything**
+- [x] **Step 3: Type-check and run everything**
   Run: `rite test`
   Expected: `tsc` clean, unit and integration suites PASS.
 
 - [ ] **Step 4: Manual check**
   `rite watch`, F5 "Run Extension", Pick Mode → Single commit… → pick a recent commit. The view message reads `commit <7 chars>`; the list shows that commit's files; opening one shows only that commit's hunks. Pick Mode again shows the check mark on "Single commit…" with the same commit preselected. Type a ref… with `HEAD` shows `commit HEAD`.
 
-- [ ] **Step 5: Commit**
+> Deviation: Step 4 (manual F5 check) not run; this session is headless. The picker wiring is covered by the type-checked switch and the model integration tests; the URI end-to-end pass in the final verification exercises the same setMode path.
+
+- [x] **Step 5: Commit**
   `git commit -m "feat: single commit entry in the mode picker"`
 
 ### Task 4: `qd -c`
@@ -202,24 +206,24 @@ No automated test: the picker is interactive and the existing picker has none ei
 - Modify: `bin/qd`
 - Test: `test/unit/qd.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
   In `test/unit/qd.test.ts`, using `formatOpenUrl` for the expected string as the existing cases do:
   - `prints a commit url for HEAD with -c and no ref`: `qd(repo, ['-c', '--print-url'])` → `mode: { kind: 'commit', ref: 'HEAD' }`, `view: 'file'`; stdout contains `mode=commit&ref=HEAD`.
   - `prints a commit url for -c with a ref and -a`: `qd(repo, ['--commit', 'abc1234', '-a', '--print-url'])` → `{ kind: 'commit', ref: 'abc1234' }`, `view: 'all'`.
   - `rejects two refs with -c`: `qd(repo, ['-c', 'a', 'b', '--print-url'])` → status 2, stderr matches `/usage/i`.
 
-- [ ] **Step 2: Run to see them fail**
+- [x] **Step 2: Run to see them fail**
   Run: `npx vitest run test/unit/qd.test.ts`
   Expected: the first two fail on `unknown option: -c` (exit 2); the third passes by accident. Fine.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
   In `bin/qd`: a `commit=0` variable set by `-c | --commit`; usage gains `qd -c [<ref>]     changes of a single commit (default HEAD)` and the option line; after parsing, when `commit` is set, more than one ref is a usage error, and the query is `&mode=commit&$(param ref "${refs[0]:-HEAD}")`. Keep the existing `case ${#refs[@]}` for the non-commit path.
 
-- [ ] **Step 4: Run the unit tests**
+- [x] **Step 4: Run the unit tests**
   Run: `npx vitest run`
   Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git commit -m "feat: qd -c opens a single commit"`
 
 ### Task 5: Docs
@@ -227,13 +231,13 @@ No automated test: the picker is interactive and the existing picker has none ei
 **Files:**
 - Modify: `README.md`, `CHANGELOG.md`
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
   - Modes table: `| Single commit | One commit with its first parent | Reviewing one commit |`. Update "There are three modes" to four.
   - After the two-refs semantics paragraph: "Single commit mode compares a commit with its first parent, the same as `git show`. A root commit has no parent and cannot be shown."
   - Terminal examples: `qd -c` (`# the last commit`) and `qd -c abc1234` (`# one commit`), and update the `usage:` block if the README reproduces it.
   - Use /writing-clearly.
 
-- [ ] **Step 2: CHANGELOG**
+- [x] **Step 2: CHANGELOG**
   Add at the top:
   ```
   ## Unreleased
@@ -241,15 +245,37 @@ No automated test: the picker is interactive and the existing picker has none ei
   - Single commit mode: a commit against its first parent, from the picker, the `vscode://` URL (`mode=commit&ref=`), or `qd -c [<ref>]`.
   ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
   `git commit -m "docs: single commit mode"`
 
 ### Task 6: Final verification
 
-- [ ] **Step 1: Full test run**
+- [x] **Step 1: Full test run**
   Run: `rite test`
   Expected: unit and integration suites PASS.
 
-- [ ] **Step 2: Package**
+- [x] **Step 2: Package**
   Run: `rite package`
   Expected: a `.vsix` is written without warnings about `package.json` (no manifest changes were needed: no new commands or settings).
+
+> Deviation: added `test/integration/uri.test.ts` case "applies a commit request built by qd -c" as the end-to-end pass: it runs the real `bin/qd -c master --print-url`, feeds the URL to the URI handler, and checks the mode, the view message, and the opened diff tab. Not in the plan; added so the user-facing path stays checked.
+
+## Completion summary
+
+Implemented on branch `single-commit-mode` (commits 1cf1da6..HEAD), all tasks done and checked off.
+
+- `DiffMode` has a `commit` member; `modeLabel` shows `commit <7-char hash>` or `commit <ref>`; the URL codec handles `mode=commit&ref=`.
+- `ChangesModel.listChanges` resolves the commit with `getCommit`, diffs it against its first parent, pins the right side to the resolved hash, and rejects root commits with a clear error while keeping the previous list.
+- Mode picker has a "Single commit…" entry listing recent commits plus "Type a ref…".
+- `qd -c [<ref>]` (default `HEAD`) emits the commit URL; two refs with `-c` is a usage error.
+- README modes table and terminal examples, CHANGELOG `## Unreleased`.
+- Tests: 62 unit, 36 integration, all passing. `rite package` builds the `.vsix` cleanly.
+
+Codex reviewed every task commit. The only finding was on Task 1 (the model did not yet handle the new variant), which was the planned intermediate state resolved by Task 2.
+
+Deviations:
+
+- Task 3 Step 4 (manual F5 picker check) was not run; the session is headless. Covered by the type-checked switch, the model integration tests, and the URI end-to-end test.
+- Task 6: added an end-to-end integration test driving `bin/qd -c` through the URI handler (see the note under Task 6).
+
+What the plan could have specified better: the end-to-end check should have been a listed test from the start, since the picker step cannot run headless and the URI path was the only user-facing route that could be exercised automatically.
