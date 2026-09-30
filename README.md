@@ -24,15 +24,16 @@ QuickDiff requires VS Code 1.95 or newer and uses the built-in Git extension.
 
 The QuickDiff icon in the activity bar opens the **Changes** list: one row per file, sorted by path, with a status icon and Git colors. The line above the list shows the current mode and the badge shows the number of files. Click a file to open its diff at the first change.
 
-There are three modes. Switch with **QuickDiff: Pick Mode** or the view title button:
+There are four modes. Switch with **QuickDiff: Pick Mode** or the view title button:
 
 | Mode | Compares | Use it for |
 |------|----------|------------|
 | Working tree | `HEAD` with your files on disk, staged and unstaged, including untracked files | What you are about to commit |
 | Branch against base | The merge base of the base branch and `HEAD` with `HEAD` | Committed work on a branch, like a pull request |
 | Two refs | Two branches, tags, or commits | Anything else |
+| Single commit | One commit with its first parent | Reviewing one commit |
 
-Branch mode shows committed changes only. Two-refs mode compares the merge base of the two refs with the second one, the same as GitHub's compare view. This equals a plain `from` to `to` diff whenever `from` is an ancestor of `to`, e.g. an older tag against a newer one.
+Branch mode shows committed changes only. Two-refs mode compares the merge base of the two refs with the second one, the same as GitHub's compare view. This equals a plain `from` to `to` diff whenever `from` is an ancestor of `to`, e.g. an older tag against a newer one. Single commit mode compares a commit with its first parent, the same as `git show`. A root commit has no parent and cannot be shown.
 
 The working tree list refreshes on its own when files change. The other modes refresh with the refresh button. The mode is remembered per workspace.
 
@@ -54,6 +55,8 @@ The navigation commands are **Next File**, **Previous File**, **Next Change**, a
 qd                 # working tree changes
 qd main            # branch changes against main
 qd v1.0 v1.1       # changes between two refs
+qd -c              # the last commit
+qd -c abc1234      # one commit
 qd main -a         # open all changes in one multi-diff editor
 qd --print-url     # print the vscode:// URL instead of opening it
 ```
