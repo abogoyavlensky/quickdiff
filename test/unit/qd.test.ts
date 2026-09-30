@@ -67,6 +67,26 @@ describe('bin/qd', () => {
     expect(result.stdout).toContain('mode=refs&from=a&to=b&view=all');
   });
 
+  it('prints a commit url for HEAD with -c and no ref', () => {
+    const result = qd(repo, ['-c', '--print-url']);
+    expect(result.status).toBe(0);
+    expect(result.stdout.trim()).toBe(formatOpenUrl({ cwd: repo, mode: { kind: 'commit', ref: 'HEAD' }, view: 'file' }));
+    expect(result.stdout).toContain('mode=commit&ref=HEAD');
+  });
+
+  it('prints a commit url for --commit with a ref and -a', () => {
+    const result = qd(repo, ['--commit', 'abc1234', '-a', '--print-url']);
+    expect(result.stdout.trim()).toBe(
+      formatOpenUrl({ cwd: repo, mode: { kind: 'commit', ref: 'abc1234' }, view: 'all' }),
+    );
+  });
+
+  it('rejects two refs with -c', () => {
+    const result = qd(repo, ['-c', 'a', 'b', '--print-url']);
+    expect(result.status).toBe(2);
+    expect(result.stderr).toMatch(/usage/i);
+  });
+
   it('encodes reserved characters so they survive VS Code decoding', () => {
     const odd = join(root, 'my repo+x&y=z%');
     makeRepo(odd);
