@@ -6,6 +6,8 @@ describe('modeLabel', () => {
     expect(modeLabel({ kind: 'worktree' })).toBe('working tree');
     expect(modeLabel({ kind: 'branch', base: 'master' })).toBe('HEAD → master');
     expect(modeLabel({ kind: 'refs', from: 'abc', to: 'def' })).toBe('abc..def');
+    expect(modeLabel({ kind: 'commit', ref: 'a'.repeat(40) })).toBe('commit aaaaaaa');
+    expect(modeLabel({ kind: 'commit', ref: 'HEAD' })).toBe('commit HEAD');
   });
 });
 
@@ -14,6 +16,7 @@ describe('open query codec', () => {
     { cwd: '/repo', mode: { kind: 'worktree' }, view: 'file' },
     { cwd: '/repo', mode: { kind: 'branch', base: 'main' }, view: 'all' },
     { cwd: '/my repo/x', mode: { kind: 'refs', from: 'v1.0', to: 'feature/x' }, view: 'file' },
+    { cwd: '/repo', mode: { kind: 'commit', ref: 'v1.0#x' }, view: 'file' },
   ];
 
   it.each(requests)('round-trips %j', (request) => {
@@ -39,6 +42,7 @@ describe('open query codec', () => {
     ['branch without base', 'cwd=%2Frepo&mode=branch'],
     ['refs without to', 'cwd=%2Frepo&mode=refs&from=a'],
     ['refs without from', 'cwd=%2Frepo&mode=refs&to=b'],
+    ['commit without ref', 'cwd=%2Frepo&mode=commit'],
     ['unknown view', 'cwd=%2Frepo&mode=worktree&view=grid'],
   ])('rejects %s', (_name, query) => {
     expect(parseOpenQuery(query)).toBeUndefined();
