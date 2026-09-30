@@ -1,7 +1,8 @@
 export type DiffMode =
   | { kind: 'worktree' }
   | { kind: 'branch'; base: string }
-  | { kind: 'refs'; from: string; to: string };
+  | { kind: 'refs'; from: string; to: string }
+  | { kind: 'commit'; ref: string };
 
 export interface OpenRequest {
   cwd: string;
@@ -17,7 +18,14 @@ export function modeLabel(mode: DiffMode): string {
       return `HEAD → ${mode.base}`;
     case 'refs':
       return `${mode.from}..${mode.to}`;
+    case 'commit':
+      return `commit ${shortRef(mode.ref)}`;
   }
+}
+
+/** Full hashes (picker choices) are shortened; symbolic refs are shown as given. */
+function shortRef(ref: string): string {
+  return /^[0-9a-f]{40}$/.test(ref) ? ref.slice(0, 7) : ref;
 }
 
 export function formatOpenQuery(request: OpenRequest): string {
@@ -27,6 +35,8 @@ export function formatOpenQuery(request: OpenRequest): string {
   } else if (request.mode.kind === 'refs') {
     params.set('from', request.mode.from);
     params.set('to', request.mode.to);
+  } else if (request.mode.kind === 'commit') {
+    params.set('ref', request.mode.ref);
   }
   params.set('view', request.view);
   return params.toString();
@@ -67,6 +77,10 @@ function parseMode(params: URLSearchParams): DiffMode | undefined {
       const from = params.get('from');
       const to = params.get('to');
       return from && to ? { kind: 'refs', from, to } : undefined;
+    }
+    case 'commit': {
+      const ref = params.get('ref');
+      return ref ? { kind: 'commit', ref } : undefined;
     }
     default:
       return undefined;

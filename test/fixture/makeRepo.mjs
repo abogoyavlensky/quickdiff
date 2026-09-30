@@ -35,6 +35,22 @@ export const FIXTURE = {
     files: [['moved/a.txt', 'renamed']],
     hunks: { 'moved/a.txt': [5] },
   },
+  // Tip of master ("master work") against its parent; master~1 is the root commit.
+  commit: {
+    ref: 'master',
+    files: [['a.txt', 'modified']],
+    hunks: { 'a.txt': [1] },
+  },
+  // Merge of feature into rename; against its first parent (rename) it shows feature's changes.
+  mergeCommit: {
+    ref: 'merged',
+    files: [
+      ['deleted.txt', 'deleted'],
+      ['new.txt', 'added'],
+      ['src/b.ts', 'modified'],
+    ],
+    hunks: { 'deleted.txt': [1], 'new.txt': [1], 'src/b.ts': [3, 15] },
+  },
 };
 
 const lines = (prefix, count, overrides = {}) =>
@@ -90,6 +106,10 @@ export function createFixtureRepo(dir) {
   git('mv', 'a.txt', 'moved/a.txt');
   write('moved/a.txt', lines('a', 10, { 1: 'a1-master', 5: 'a5-renamed' }));
   git('commit', '-q', '-am', 'rename a.txt');
+
+  // Leaf branch off rename merging feature: a merge commit whose first parent is rename.
+  git('checkout', '-q', '-b', 'merged');
+  git('merge', '-q', '--no-ff', '-m', 'merge feature', 'feature');
 
   // Working tree on feature.
   git('checkout', '-q', 'feature');

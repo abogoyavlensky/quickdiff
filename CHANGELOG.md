@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Single commit mode: a commit against its first parent, from the picker, the `vscode://` URL (`mode=commit&ref=`), or `qd -c [<ref>]`.
+
 ## 0.1.1
 
 - No default keybindings. Bind the commands yourself; see `docs/keybindings.md` for examples.

@@ -48,6 +48,34 @@ describe('changes model', () => {
     assert.deepStrictEqual(await model.hunksFor(model.files[0]), fixture.rename.hunks['moved/a.txt']);
   });
 
+  it('lists the changes of a single commit against its parent', async () => {
+    const model = await getModel();
+    await model.setMode({ kind: 'commit', ref: fixture.commit.ref });
+    assert.deepStrictEqual(listing(model), fixture.commit.files);
+    assert.match(model.resolved.left, /^[0-9a-f]{40}$/);
+    assert.match(model.resolved.right, /^[0-9a-f]{40}$/);
+    assert.notStrictEqual(model.resolved.right, fixture.commit.ref);
+    assert.deepStrictEqual(await model.hunksFor(model.files[0]), fixture.commit.hunks['a.txt']);
+  });
+
+  it('diffs a merge commit against its first parent', async () => {
+    const model = await getModel();
+    await model.setMode({ kind: 'commit', ref: fixture.mergeCommit.ref });
+    assert.deepStrictEqual(listing(model), fixture.mergeCommit.files);
+    for (const file of model.files) {
+      assert.deepStrictEqual(await model.hunksFor(file), fixture.mergeCommit.hunks[file.path], file.path);
+    }
+  });
+
+  it('rejects a root commit and keeps the previous list', async () => {
+    const model = await getModel();
+    const before = listing(model);
+    const modeBefore = model.mode;
+    await assert.rejects(model.setMode({ kind: 'commit', ref: 'master~1' }), /root commit/);
+    assert.deepStrictEqual(listing(model), before);
+    assert.deepStrictEqual(model.mode, modeBefore);
+  });
+
   it('rejects an unknown base and keeps the previous list', async () => {
     const model = await getModel();
     const before = listing(model);

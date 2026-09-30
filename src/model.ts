@@ -143,6 +143,16 @@ export class ChangesModel implements vscode.Disposable {
         }
         return { resolved: { left: mergeBase, right: mode.to }, changes: await this.repo.diffBetween(mergeBase, mode.to) };
       }
+      case 'commit': {
+        // The parent is an ancestor, so `git diff parent...hash` is exactly the commit's diff.
+        // The right side is the resolved hash so open editors stay on this commit if the ref moves.
+        const commit = await this.repo.getCommit(mode.ref);
+        const parent = commit.parents[0];
+        if (!parent) {
+          throw new Error(`${mode.ref} is a root commit; nothing to compare with`);
+        }
+        return { resolved: { left: parent, right: commit.hash }, changes: await this.repo.diffBetween(parent, commit.hash) };
+      }
     }
   }
 

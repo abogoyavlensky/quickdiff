@@ -9,9 +9,11 @@ usage: qd [options] [<base> | <from> <to>]
   qd                 working tree changes against HEAD
   qd <base>          committed branch changes since the merge base with <base>
   qd <from> <to>     changes between two refs
+  qd -c [<ref>]      changes of a single commit (default HEAD)
 
 options:
   -a, --all          open all changes in one multi-diff editor
+  -c, --commit       treat the ref as a single commit
       --print-url    print the vscode:// URL instead of opening it
   -h, --help         show this help
 
@@ -43,10 +45,12 @@ param() {
 
 view=file
 print_url=0
+commit=0
 refs=()
 while (($#)); do
   case $1 in
     -a | --all) view=all ;;
+    -c | --commit) commit=1 ;;
     --print-url) print_url=1 ;;
     -h | --help) usage; exit 0 ;;
     --) shift; refs+=("$@"); break ;;
@@ -56,7 +60,11 @@ while (($#)); do
   shift
 done
 
-if ((${#refs[@]} > 2)); then
+max_refs=2
+if ((commit)); then
+  max_refs=1
+fi
+if ((${#refs[@]} > max_refs)); then
   usage >&2
   exit 2
 fi
@@ -67,11 +75,15 @@ if ! cwd=$(git rev-parse --show-toplevel 2>/dev/null); then
 fi
 
 query=$(param cwd "$cwd")
-case ${#refs[@]} in
-  0) query+="&mode=worktree" ;;
-  1) query+="&mode=branch&$(param base "${refs[0]}")" ;;
-  2) query+="&mode=refs&$(param from "${refs[0]}")&$(param to "${refs[1]}")" ;;
-esac
+if ((commit)); then
+  query+="&mode=commit&$(param ref "${refs[0]:-HEAD}")"
+else
+  case ${#refs[@]} in
+    0) query+="&mode=worktree" ;;
+    1) query+="&mode=branch&$(param base "${refs[0]}")" ;;
+    2) query+="&mode=refs&$(param from "${refs[0]}")&$(param to "${refs[1]}")" ;;
+  esac
+fi
 query+="&view=$view"
 
 code_bin=${QD_CODE_BIN:-code}
