@@ -12,6 +12,7 @@ export default defineConfig({
   files: 'out/test/integration/**/*.test.js',
   workspaceFolder: fixtureRepo,
   version: 'stable',
-  launchArgs: ['--disable-workspace-trust'],
+  // No GPU under xvfb: the renderer can hang at startup on CI runners.
+  launchArgs: ['--disable-workspace-trust', '--disable-gpu'],
   mocha: { ui: 'bdd', timeout: 30000, color: true },
 });
