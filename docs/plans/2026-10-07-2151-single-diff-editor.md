@@ -182,6 +182,7 @@ Not tested: `workbench.editor.enablePreview` false. The pinned-tab case exercise
 > Deviation: "the tab just opened" is the tab in the active group whose sides equal the pair just opened, rather than the active tab; same result, and it needs no extra lookup.
 > Deviation: the "stays in the reviewing group" test opens `src/b.ts` with `quickdiff.openFile` instead of Next File. With focus in the new empty group, Next File has no current file and would reopen `a.txt`, which proves nothing.
 > Deviation: the multi-diff test pins the multi-diff tab first. Unpinned, VS Code's own preview replacement swaps it for the next preview diff in the same group, with or without the setting.
+> Deviation (from the codex review): with the setting on, the open-and-cleanup step runs through a module-level promise queue in `src/opener.ts`, and the target column is computed inside it. Overlapping opens (a held Next File key, fast clicks) each cleaned up with their own pair and could close every diff tab. An extra test, "keeps one diff when opens overlap", fires three opens at once and fails without the queue.
 
 ### Task 3: Docs
 
@@ -189,11 +190,11 @@ Not tested: `workbench.editor.enablePreview` false. The pinned-tab case exercise
 - Modify: `README.md`
 - Modify: `CHANGELOG.md`
 
-- [ ] **Step 1: README**
+- [x] **Step 1: README**
   Add a row to the Settings table: `quickdiff.singleDiffEditor` | `false` | Keep only one QuickDiff diff open. Opening a change closes the other QuickDiff diff tabs, even pinned ones, in every editor group. Tabs with unsaved edits stay open. Use /writing-clearly.
 
-- [ ] **Step 2: CHANGELOG**
+- [x] **Step 2: CHANGELOG**
   Under `## Unreleased`, add: `quickdiff.singleDiffEditor` setting (off by default): opening a change closes the other QuickDiff diff tabs, so one diff stays open even when VS Code preview tabs are disabled or the tab was pinned.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
   `git commit -m "docs: document quickdiff.singleDiffEditor"`

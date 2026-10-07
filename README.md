@@ -72,6 +72,7 @@ Install it with the command **QuickDiff: Install qd Command**, which copies the 
 | Setting | Default | Description |
 |---------|---------|-------------|
 | `quickdiff.baseBranch` | `""` | Base branch for branch mode. When empty, QuickDiff uses `main` if it exists, otherwise `master`. |
+| `quickdiff.singleDiffEditor` | `false` | Keep only one QuickDiff diff open. Opening a change closes the other QuickDiff diff tabs in every editor group, including pinned ones. Tabs with unsaved edits stay open. |
 
 ## Development
 
