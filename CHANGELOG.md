@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Single commit mode: a commit against its first parent, from the picker, the `vscode://` URL (`mode=commit&ref=`), or `qd -c [<ref>]`.
+- `quickdiff.singleDiffEditor` setting, off by default. Opening a change closes the other QuickDiff diff tabs, so one diff stays open even when preview tabs are disabled or the tab was pinned.
 
 ## 0.1.1
 

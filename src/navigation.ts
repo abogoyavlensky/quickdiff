@@ -3,6 +3,7 @@ import { wrapIndex, type FileChange } from './core/files';
 import { nextHunkLine, prevHunkLine } from './core/hunks';
 import type { ChangesModel } from './model';
 import { MULTI_TITLE_PREFIX, moveCursor, openFile, sidesOf } from './opener';
+import { listedFileIndex } from './tabs';
 
 export type ActiveContext = { kind: 'multi' } | { kind: 'file'; index: number } | { kind: 'none' };
 
@@ -14,14 +15,8 @@ export function activeContext(model: ChangesModel): ActiveContext {
   }
   const { input } = tab;
   if (input instanceof vscode.TabInputTextDiff) {
-    const modified = input.modified.toString();
-    const original = input.original.toString();
-    const index = model.files.findIndex((file) => {
-      const { left, right } = sidesOf(model, file);
-      // Deleted files have an empty right side, so they are recognised by their original.
-      return file.status === 'deleted' ? left.toString() === original : right.toString() === modified;
-    });
-    return index >= 0 ? { kind: 'file', index } : { kind: 'none' };
+    const index = listedFileIndex(model, tab);
+    return index !== undefined ? { kind: 'file', index } : { kind: 'none' };
   }
   // TabInputTextMultiDiff is proposed API, so the multi-diff tab is recognised by its title.
   if (!(input instanceof vscode.TabInputText) && tab.label.startsWith(MULTI_TITLE_PREFIX)) {

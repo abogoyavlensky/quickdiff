@@ -139,6 +139,11 @@
           "type": "string",
           "default": "",
           "description": "Base branch for branch mode. When empty, QuickDiff uses `main` if it exists, otherwise `master`, otherwise asks."
+        },
+        "quickdiff.singleDiffEditor": {
+          "type": "boolean",
+          "default": false,
+          "description": "Keep only one QuickDiff diff open. Opening a change closes the other QuickDiff diff tabs, even pinned ones, in every editor group. Tabs with unsaved edits stay open. The multi-diff editor from Open All is not affected."
         }
       }
     },

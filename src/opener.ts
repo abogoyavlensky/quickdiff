@@ -3,6 +3,7 @@ import type { FileChange } from './core/files';
 import { modeLabel } from './core/mode';
 import type { ChangesModel } from './model';
 import { multiDiffTuple, sidesFor, type DiffSides } from './sides';
+import { diffKey, quickDiffTabs, rememberOpened } from './tabs';
 
 /** Every QuickDiff multi-diff editor title starts with this; navigation recognises the tab by it. */
 export const MULTI_TITLE_PREFIX = 'QuickDiff: ';
@@ -17,7 +18,21 @@ export function sidesOf(model: ChangesModel, file: FileChange): DiffSides {
 
 export async function openFile(model: ChangesModel, file: FileChange, opts: OpenOptions = {}): Promise<void> {
   const { left, right, title } = sidesOf(model, file);
-  await vscode.commands.executeCommand('vscode.diff', left, right, title, { preview: true });
+  const single = vscode.workspace.getConfiguration('quickdiff').get<boolean>('singleDiffEditor', false);
+  rememberOpened(left, right);
+  const show = (viewColumn?: vscode.ViewColumn) =>
+    vscode.commands.executeCommand('vscode.diff', left, right, title, {
+      preview: true,
+      ...(viewColumn === undefined ? {} : { viewColumn }),
+    });
+  if (single) {
+    await serialized(async () => {
+      await show(reviewColumn(model));
+      await closeOtherDiffs(model, diffKey(left, right));
+    });
+  } else {
+    await show();
+  }
   const hunk = opts.hunk ?? 'first';
   if (hunk === 'none') {
     return;
@@ -27,6 +42,44 @@ export async function openFile(model: ChangesModel, file: FileChange, opts: Open
   const editor = vscode.window.activeTextEditor;
   if (line !== undefined && editor?.document.uri.toString() === right.toString()) {
     moveCursor(editor, line);
+  }
+}
+
+let openQueue: Promise<unknown> = Promise.resolve();
+
+/**
+ * Runs open-and-cleanup steps one at a time. Overlapping opens (a held Next File key,
+ * fast clicks) would otherwise each close the other's new tab and leave no diff open.
+ */
+function serialized(step: () => Promise<void>): Promise<void> {
+  const run = openQueue.then(step, step);
+  openQueue = run.catch(() => undefined);
+  return run;
+}
+
+/**
+ * The column of an open QuickDiff diff, preferring the active group, so the next diff
+ * replaces it where the user reviews. Undefined when none is open.
+ */
+function reviewColumn(model: ChangesModel): vscode.ViewColumn | undefined {
+  const tabs = quickDiffTabs(model);
+  const active = vscode.window.tabGroups.activeTabGroup;
+  return (tabs.find((tab) => tab.group === active) ?? tabs[0])?.group.viewColumn;
+}
+
+/**
+ * Closes every QuickDiff diff tab except the one just opened in the active group.
+ * Tabs with unsaved edits stay open: closing them would prompt to save.
+ */
+async function closeOtherDiffs(model: ChangesModel, openedKey: string): Promise<void> {
+  const column = vscode.window.tabGroups.activeTabGroup.viewColumn;
+  const others = quickDiffTabs(model).filter((tab) => {
+    const input = tab.input as vscode.TabInputTextDiff;
+    const isNew = tab.group.viewColumn === column && diffKey(input.original, input.modified) === openedKey;
+    return !isNew && !tab.isDirty;
+  });
+  if (others.length > 0) {
+    await vscode.window.tabGroups.close(others, true);
   }
 }
 
