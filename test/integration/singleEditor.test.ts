@@ -133,6 +133,13 @@ describe('single diff editor setting', () => {
     assert.strictEqual(diffTabs().length, 1);
   });
 
+  it('keeps one diff when opens overlap', async () => {
+    await setSingle(true);
+    await Promise.all([open('a.txt'), open('src/b.ts'), open('untracked.txt')]);
+    assert.strictEqual(diffTabs().length, 1);
+    assert.strictEqual(diffPath(activeDiffTab()), 'untracked.txt');
+  });
+
   it('leaves the multi-diff editor alone', async () => {
     await setSingle(true);
     await run('quickdiff.openAll');

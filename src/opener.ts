@@ -19,14 +19,19 @@ export function sidesOf(model: ChangesModel, file: FileChange): DiffSides {
 export async function openFile(model: ChangesModel, file: FileChange, opts: OpenOptions = {}): Promise<void> {
   const { left, right, title } = sidesOf(model, file);
   const single = vscode.workspace.getConfiguration('quickdiff').get<boolean>('singleDiffEditor', false);
-  const viewColumn = single ? reviewColumn(model) : undefined;
   rememberOpened(left, right);
-  await vscode.commands.executeCommand('vscode.diff', left, right, title, {
-    preview: true,
-    ...(viewColumn === undefined ? {} : { viewColumn }),
-  });
+  const show = (viewColumn?: vscode.ViewColumn) =>
+    vscode.commands.executeCommand('vscode.diff', left, right, title, {
+      preview: true,
+      ...(viewColumn === undefined ? {} : { viewColumn }),
+    });
   if (single) {
-    await closeOtherDiffs(model, diffKey(left, right));
+    await serialized(async () => {
+      await show(reviewColumn(model));
+      await closeOtherDiffs(model, diffKey(left, right));
+    });
+  } else {
+    await show();
   }
   const hunk = opts.hunk ?? 'first';
   if (hunk === 'none') {
@@ -38,6 +43,18 @@ export async function openFile(model: ChangesModel, file: FileChange, opts: Open
   if (line !== undefined && editor?.document.uri.toString() === right.toString()) {
     moveCursor(editor, line);
   }
+}
+
+let openQueue: Promise<unknown> = Promise.resolve();
+
+/**
+ * Runs open-and-cleanup steps one at a time. Overlapping opens (a held Next File key,
+ * fast clicks) would otherwise each close the other's new tab and leave no diff open.
+ */
+function serialized(step: () => Promise<void>): Promise<void> {
+  const run = openQueue.then(step, step);
+  openQueue = run.catch(() => undefined);
+  return run;
 }
 
 /**
