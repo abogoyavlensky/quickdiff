@@ -134,17 +134,17 @@ Not tested: `workbench.editor.enablePreview` false. The pinned-tab case exercise
 - Create: `src/tabs.ts`
 - Modify: `src/navigation.ts`
 
-- [ ] **Step 1: Create `src/tabs.ts`**
+- [x] **Step 1: Create `src/tabs.ts`**
   Implement the four exports from the design. `listedFileIndex` holds the loop that is now inside `activeContext` (`src/navigation.ts:14-23`), including the deleted-file rule. `quickDiffTabs` flattens `vscode.window.tabGroups.all` and keeps tabs with a `TabInputTextDiff` input whose `diffKey(original, modified)` is either in the opened set or equal to `diffKey(left, right)` of `sidesOf(model, file)` for some listed file. It must not use `listedFileIndex`: one-side matching is for navigation only. Import `sidesOf` from `./opener`; `src/opener.ts` will import `./tabs` in Task 2, so keep the import type-only where possible to avoid a runtime cycle, or export `sidesOf` from `src/sides.ts`-level code if the cycle bites (it should not: both imports are used inside functions, not at module load).
 
-- [ ] **Step 2: Use it in `activeContext`**
+- [x] **Step 2: Use it in `activeContext`**
   Replace the inline `findIndex` loop with `listedFileIndex(model, tab)`. Behaviour is identical.
 
-- [ ] **Step 3: Compile and run the existing integration tests**
+- [x] **Step 3: Compile and run the existing integration tests**
   Run: `rite test-it`
   Expected: all current tests pass, no new tests yet.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git commit -m "refactor: move QuickDiff diff tab recognition to src/tabs.ts"`
 
 ### Task 2: Setting and opener behaviour
@@ -154,29 +154,34 @@ Not tested: `workbench.editor.enablePreview` false. The pinned-tab case exercise
 - Modify: `src/opener.ts`
 - Create: `test/integration/singleEditor.test.ts`
 
-- [ ] **Step 1: Add the setting to `package.json`**
+- [x] **Step 1: Add the setting to `package.json`**
   Under `contributes.configuration.properties`, after `quickdiff.baseBranch`, add `quickdiff.singleDiffEditor` with the type, default, and description from the design.
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
   Create `test/integration/singleEditor.test.ts` with the helpers and the nine cases from the Testing section. Follow `open.test.ts` for structure (`getModel`, `closeAllEditors`, `resetToWorktree`, `waitFor` from `./helpers`). For the dirty case, revert before `afterEach` runs: run `workbench.action.files.revert` with the dirty document's editor active, then `waitFor(() => !tab.isDirty)`.
 
-- [ ] **Step 3: Run the tests to see the new ones fail**
+- [x] **Step 3: Run the tests to see the new ones fail**
   Run: `rite test-it`
   Expected: the "pinned tab is replaced", "other mode's tab is closed", and "stays in the reviewing group" cases fail; the rest pass (the unrelated-diff case passes before and after, it guards the implementation).
 
-- [ ] **Step 4: Implement the opener change**
+- [x] **Step 4: Implement the opener change**
   In `openFile`, follow the five steps from "Opening with the setting on". Keep `OpenOptions` unchanged. Put the "same tab" comparison in a small local function. Pass `preserveFocus: true` to `tabGroups.close`.
 
-- [ ] **Step 5: Run all integration tests**
+- [x] **Step 5: Run all integration tests**
   Run: `rite test-it`
   Expected: PASS, including `open.test.ts` and `navigation.test.ts`.
 
-- [ ] **Step 6: Run the unit tests**
+- [x] **Step 6: Run the unit tests**
   Run: `rite test-unit`
   Expected: PASS (nothing in `src/core` changed; this guards the build).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
   `git commit -m "feat: quickdiff.singleDiffEditor keeps one diff tab open"`
+
+> Deviation: the target column prefers a QuickDiff diff in the active group, then the first one found, instead of always the first one found. With diffs in two groups, the next diff replaces the one the user is looking at.
+> Deviation: "the tab just opened" is the tab in the active group whose sides equal the pair just opened, rather than the active tab; same result, and it needs no extra lookup.
+> Deviation: the "stays in the reviewing group" test opens `src/b.ts` with `quickdiff.openFile` instead of Next File. With focus in the new empty group, Next File has no current file and would reopen `a.txt`, which proves nothing.
+> Deviation: the multi-diff test pins the multi-diff tab first. Unpinned, VS Code's own preview replacement swaps it for the next preview diff in the same group, with or without the setting.
 
 ### Task 3: Docs
 
