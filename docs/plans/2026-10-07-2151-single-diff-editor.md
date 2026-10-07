@@ -1,5 +1,7 @@
 # Single Diff Editor Implementation Plan
 
+**Status:** Completed 2026-10-07. See the Completion summary at the end.
+
 > **For agentic workers:** Use executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** An opt-in setting, `quickdiff.singleDiffEditor`, that keeps exactly one QuickDiff diff tab open: opening a file's diff closes every other QuickDiff diff tab, pinned or not, in every editor group, except tabs with unsaved edits.
@@ -198,3 +200,21 @@ Not tested: `workbench.editor.enablePreview` false. The pinned-tab case exercise
 
 - [x] **Step 3: Commit**
   `git commit -m "docs: document quickdiff.singleDiffEditor"`
+
+## Completion summary
+
+Implemented as planned on branch `single-diff-editor`. `quickdiff.singleDiffEditor` (off by default) makes `openFile` open the diff in the group that already holds a QuickDiff diff, then close every other QuickDiff diff tab in every group, pinned or not, except tabs with unsaved edits. Tab recognition lives in `src/tabs.ts`: navigation keeps its one-side match, cleanup matches both sides against listed files or pairs opened this session. Full suite: 62 unit tests and 46 integration tests pass, including ten new integration cases.
+
+Issues found: the Task 2 codex review reproduced a race where overlapping opens closed every diff tab. Fixed by queueing open-and-cleanup when the setting is on, with a test that fails without the queue.
+
+Deviations:
+
+- The target column prefers a QuickDiff diff in the active group, then the first one found.
+- "The tab just opened" is matched by active group and sides rather than by the active tab.
+- The reviewing-group test uses `quickdiff.openFile` instead of Next File, which would reopen `a.txt` from an empty group.
+- The multi-diff test pins the multi-diff tab first, since VS Code's own preview replacement would otherwise take it.
+- Open-and-cleanup is serialized through a promise queue, from the codex review.
+
+End-to-end check: exercised through the headless VS Code integration tests, which drive the real commands and tab API. No manual session in a desktop VS Code window.
+
+What the plan could have specified better: concurrency. It should have asked what happens when two opens overlap, since tab cleanup is destructive and command handlers are not serialized.
